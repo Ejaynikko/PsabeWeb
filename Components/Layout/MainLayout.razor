@@ -1,0 +1,127 @@
+@inherits LayoutComponentBase
+@inject IConfiguration Config
+
+<!-- TOP INFORMATION BAR -->
+<div class="top-bar">
+    <div class="container d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-envelope"></i> PSABE Official Website</span>
+        <div class="top-social">
+            <a href="@Facebook" target="_blank" rel="noopener" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="@YouTube" target="_blank" rel="noopener" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+            <a href="/contact" aria-label="Contact"><i class="bi bi-envelope"></i></a>
+        </div>
+    </div>
+</div>
+
+<!-- BRANDING HEADER -->
+<header class="main-header">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="/" class="brand-area text-decoration-none">
+                <div class="brand-logo">
+                    <img src="images/psabe-logo.png" alt="PSABE Logo"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                    <div class="logo-fallback"><i class="bi bi-flower3"></i></div>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">PSABE</span>
+                    <p>Philippine Society of Agricultural<br />and Biosystems Engineers</p>
+                </div>
+            </a>
+
+            <div class="header-actions d-none d-lg-flex">
+                <AuthButtons />
+            </div>
+
+            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- NAVIGATION -->
+<nav class="navbar navbar-expand-lg main-navbar sticky-top">
+    <div class="container">
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item"><NavLink class="nav-link" href="" Match="NavLinkMatch.All">Home</NavLink></li>
+                <li class="nav-item"><NavLink class="nav-link" href="about">About Us</NavLink></li>
+                <li class="nav-item"><NavLink class="nav-link" href="officers">Officers</NavLink></li>
+                <li class="nav-item"><NavLink class="nav-link" href="membership">Membership</NavLink></li>
+                <li class="nav-item"><NavLink class="nav-link" href="events">Events</NavLink></li>
+                <li class="nav-item"><NavLink class="nav-link" href="news">News</NavLink></li>
+                <li class="nav-item"><NavLink class="nav-link" href="gallery">Gallery</NavLink></li>
+                <li class="nav-item"><NavLink class="nav-link" href="resources">Resources</NavLink></li>
+                <li class="nav-item"><NavLink class="nav-link" href="contact">Contact</NavLink></li>
+            </ul>
+            @* the header buttons are hidden on small screens, so they live in the menu there *@
+            <div class="mobile-actions d-lg-none">
+                <AuthButtons />
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main>@Body</main>
+
+<!-- FOOTER -->
+<footer class="main-footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="footer-brand"><i class="bi bi-flower3"></i><span>PSABE</span></div>
+                <p>
+                    Philippine Society of Agricultural and Biosystems Engineers.
+                    Advancing the profession through innovation, knowledge, and service.
+                </p>
+                <div class="footer-social">
+                    <a href="@Facebook" target="_blank" rel="noopener" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="@YouTube" target="_blank" rel="noopener" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                    <a href="/contact" aria-label="Contact"><i class="bi bi-envelope"></i></a>
+                </div>
+            </div>
+
+            <div class="col-lg-3">
+                <h5>Quick Links</h5>
+                <ul>
+                    <li><a href="/about">About PSABE</a></li>
+                    <li><a href="/officers">National Officers</a></li>
+                    <li><a href="/membership">Membership</a></li>
+                    <li><a href="/events">Events</a></li>
+                    <li><a href="/resources">Resources</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-4">
+                <h5>Contact Information</h5>
+                <p><i class="bi bi-geo-alt me-2"></i>@Address</p>
+                <p><i class="bi bi-envelope me-2"></i>@Email</p>
+                <p><i class="bi bi-telephone me-2"></i>@Phone</p>
+            </div>
+        </div>
+
+        <hr />
+
+        <div class="footer-bottom">
+            <span>&copy; @DateTime.Now.Year Philippine Society of Agricultural and Biosystems Engineers.</span>
+            <span>Designed for PSABE</span>
+        </div>
+    </div>
+</footer>
+
+<button id="backToTop" aria-label="Back to top"><i class="bi bi-arrow-up"></i></button>
+
+@code {
+    string Address => Site("Address", "Official PSABE Office Address");
+    string Email => Site("Email", "Official PSABE Email");
+    string Phone => Site("Phone", "Official Contact Number");
+    string Facebook => Site("Facebook", "#");
+    string YouTube => Site("YouTube", "#");
+
+    // Contact details live in appsettings.json ("Site" section).
+    string Site(string key, string fallback) =>
+        string.IsNullOrWhiteSpace(Config["Site:" + key]) ? fallback : Config["Site:" + key]!;
+}

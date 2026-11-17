@@ -1,0 +1,33 @@
+@page "/officers"
+@inject SupabaseApi Api
+
+<PageTitle>Officers - PSABE</PageTitle>
+
+<PageBanner Tag="LEADERSHIP" Title="Meet Our National Officers"
+            Subtitle="Dedicated leaders working together to advance agricultural and biosystems engineering." />
+
+<section class="section-padding">
+    <div class="container">
+        @if (officers is null) { <p class="text-muted">Loading...</p> }
+        else if (officers.Count == 0) { <p class="text-muted">No officers listed yet.</p> }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var o in officers)
+                {
+                    <div class="col-sm-6 col-lg-3"><OfficerCard Item="o" /></div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    List<Officer>? officers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { officers = await Api.List<Officer>("officers", "order=sort_order.asc,full_name.asc"); }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException) { officers = []; }
+    }
+}

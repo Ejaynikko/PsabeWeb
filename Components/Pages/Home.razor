@@ -1,0 +1,276 @@
+@page "/"
+@implements IDisposable
+@inject SupabaseApi Api
+
+<PageTitle>Home - PSABE</PageTitle>
+
+@{ var s = slides[index]; }
+
+<!-- HERO -->
+<section class="hero-section">
+    <div class="carousel slide">
+        <div class="carousel-indicators">
+            @for (var i = 0; i < slides.Length; i++)
+            {
+                var n = i;
+                <button type="button" data-bs-target="#psabeHero" class="@(n == index ? "active" : "")"
+                        aria-label='@("Slide " + (n + 1))' @onclick="() => Show(n)"></button>
+            }
+        </div>
+
+        <div class="carousel-inner">
+            <div class="carousel-item active" @key="index">
+                <div class="hero-image hero-fade" style="background-image:url('@s.Image')">
+                    <div class="hero-overlay"></div>
+                    <div class="container hero-content">
+                        <div class="hero-text">
+                            <span class="hero-label"><i class="bi bi-stars me-2"></i>@s.Label</span>
+                            <h1>@s.Title</h1>
+                            <p>@s.Subtitle</p>
+                            <a href="@s.Link" class="btn btn-gold btn-lg">@s.ButtonText <i class="bi bi-arrow-right ms-2"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="carousel-control-prev" type="button" aria-label="Previous slide" @onclick="() => Go(-1)">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" aria-label="Next slide" @onclick="() => Go(1)">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
+    <div class="hero-bottom-line"></div>
+</section>
+
+<!-- ANNOUNCEMENT TICKER (items are listed twice so the scroll loops seamlessly) -->
+<section class="announcement-section">
+    <div class="announcement-label"><i class="bi bi-megaphone-fill me-2"></i>ANNOUNCEMENTS</div>
+    <div class="announcement-content">
+        <div class="announcement-track">
+            @foreach (var a in announcements.Concat(announcements))
+            {
+                <span><i class="bi bi-circle-fill"></i> @a</span>
+            }
+        </div>
+    </div>
+</section>
+
+<AboutSection ShowButton="true" />
+
+<MembershipBanner />
+
+<!-- OFFICERS -->
+<section class="section-padding">
+    <div class="container">
+        <div class="section-heading text-center">
+            <span class="section-tag">LEADERSHIP</span>
+            <h2 class="section-title">Meet Our National Officers</h2>
+            <p class="section-description">
+                Dedicated leaders working together to advance agricultural and biosystems engineering.
+            </p>
+        </div>
+
+        @if (officers.Count == 0) { <p class="text-center text-muted mt-4">Officers will be listed here soon.</p> }
+        <div class="row g-4 mt-3">
+            @foreach (var o in officers)
+            {
+                <div class="col-sm-6 col-lg-3"><OfficerCard Item="o" /></div>
+            }
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="/officers" class="btn btn-outline-green">View All Officers <i class="bi bi-arrow-right ms-2"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- EVENTS -->
+<section class="section-padding light-section">
+    <div class="container">
+        <div class="section-heading">
+            <div>
+                <span class="section-tag">WHAT'S HAPPENING</span>
+                <h2 class="section-title">Upcoming Events</h2>
+            </div>
+            <a href="/events" class="view-all-link">View All Events <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        @if (events.Count == 0) { <p class="text-muted mt-3">No upcoming events yet.</p> }
+        <div class="row g-4 mt-3">
+            @foreach (var e in events)
+            {
+                <div class="col-lg-4"><EventCard Item="e" /></div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- NEWS -->
+<section class="section-padding">
+    <div class="container">
+        <div class="section-heading">
+            <div>
+                <span class="section-tag">LATEST UPDATES</span>
+                <h2 class="section-title">News and Announcements</h2>
+            </div>
+            <a href="/news" class="view-all-link">Browse All News <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        @if (news.Count == 0) { <p class="text-muted mt-3">No news yet.</p> }
+        <div class="row g-4 mt-3">
+            @foreach (var n in news)
+            {
+                <div class="col-lg-4"><NewsCard Item="n" /></div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- GALLERY -->
+<section class="gallery-section section-padding">
+    <div class="container">
+        <div class="section-heading">
+            <div>
+                <span class="section-tag light-tag">MOMENTS AND MEMORIES</span>
+                <h2 class="section-title text-white">Photo Gallery</h2>
+                <p class="text-white-50">
+                    Explore activities, events, and memorable moments from the PSABE community.
+                </p>
+            </div>
+            <a href="/gallery" class="view-all-link text-white">Open Gallery <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        @if (gallery.Count == 0) { <p class="text-white-50 mt-3">Photos will be added soon.</p> }
+        <div class="row g-3 mt-3">
+            @foreach (var g in gallery)
+            {
+                <div class="col-6 col-lg-3"><GalleryTile Item="g" /></div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- RESOURCES -->
+<section class="section-padding">
+    <div class="container">
+        <div class="section-heading text-center">
+            <span class="section-tag">KNOWLEDGE CENTER</span>
+            <h2 class="section-title">Resources and Publications</h2>
+            <p class="section-description">
+                Access professional references, publications, technical documents, and organizational resources.
+            </p>
+        </div>
+
+        <div class="row g-4 mt-3">
+            <div class="col-md-4">
+                <div class="resource-card">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    <h5>Publications</h5>
+                    <p>Professional publications and organizational documents.</p>
+                    <a href="/resources">Explore Resources <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="resource-card">
+                    <i class="bi bi-journal-text"></i>
+                    <h5>Technical References</h5>
+                    <p>Technical references and engineering materials.</p>
+                    <a href="/resources">Explore Resources <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="resource-card">
+                    <i class="bi bi-cloud-download"></i>
+                    <h5>Downloads</h5>
+                    <p>Forms, templates, and downloadable documents.</p>
+                    <a href="/resources">Explore Resources <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MEMBER PORTAL -->
+<section class="member-login-section">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <span class="section-tag light-tag">PSABE MEMBER PORTAL</span>
+                <h2>Already a PSABE Member?</h2>
+                <p>
+                    Your digital membership account gives you access to membership information, event
+                    registration, certificates, and more.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <AuthorizeView>
+                    <Authorized><a class="btn btn-gold btn-lg" href="/account">My Account</a></Authorized>
+                    <NotAuthorized><a class="btn btn-gold btn-lg" href="/login" data-enhance-nav="false">Member Login</a></NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    record Slide(string Label, string Title, string Subtitle, string Image, string ButtonText, string Link);
+
+    // Hero slides are fixed text from the design. shortcut: images are hot-linked Unsplash photos, replace with PSABE's own.
+    static readonly Slide[] slides =
+    [
+        new("WELCOME TO PSABE", "Engineering a Sustainable Agricultural Future",
+            "Advancing agricultural and biosystems engineering through innovation, collaboration, and professional excellence.",
+            "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1800", "Discover PSABE", "/about"),
+        new("PROFESSIONAL COMMUNITY", "Together We Build a Better Future",
+            "Connecting professionals, students, researchers, and innovators across the Philippines.",
+            "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1800", "Explore Membership", "/membership"),
+        new("INNOVATION AND TECHNOLOGY", "Transforming Agriculture Through Engineering",
+            "Promoting technology, research, and sustainable agricultural development.",
+            "https://images.unsplash.com/photo-1499529112087-3cb3b73cec95?w=1800", "Explore Our Activities", "/events"),
+    ];
+
+    static readonly string[] defaultAnnouncements =
+    [
+        "Welcome to the official PSABE website!",
+        "Membership applications and renewals will be available online.",
+        "Watch this page for upcoming PSABE events and announcements.",
+    ];
+
+    int index;
+    List<Officer> officers = [];
+    List<EventItem> events = [];
+    List<NewsItem> news = [];
+    List<GalleryItem> gallery = [];
+    List<string> announcements = [.. defaultAnnouncements];
+    Timer? timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            officers = await Api.List<Officer>("officers", "order=sort_order.asc,full_name.asc&limit=4");
+            events = await Api.List<EventItem>("events", $"is_published=eq.true&starts_at=gte.{DateTime.UtcNow:yyyy-MM-dd}&order=starts_at.asc&limit=3");
+            news = await Api.List<NewsItem>("news", "is_published=eq.true&order=published_at.desc&limit=3");
+            gallery = await Api.List<GalleryItem>("gallery_items", "is_published=eq.true&order=sort_order.asc,created_at.desc&limit=4");
+            var texts = (await Api.List<Announcement>("announcements", "is_active=eq.true&order=sort_order.asc")).Select(a => a.Text).ToList();
+            if (texts.Count > 0) announcements = texts;
+        }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException)
+        {
+            // the page still renders with whatever loaded
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            timer = new Timer(_ => InvokeAsync(() => { Go(1); StateHasChanged(); }), null, TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(6));
+    }
+
+    void Go(int step) => index = (index + step + slides.Length) % slides.Length;
+    void Show(int n) => index = n;
+
+    public void Dispose() => timer?.Dispose();
+}

@@ -1,0 +1,92 @@
+@page "/admin/registrations"
+@attribute [Authorize(Roles = "admin")]
+@inject SupabaseApi Api
+
+<PageTitle>Registrations - Admin - PSABE</PageTitle>
+
+<section class="wrap section">
+    <h1 class="section-title">Admin</h1>
+    <AdminTabs />
+    @if (error != null) { <div class="alert alert-error">@error</div> }
+
+    <label class="field">Event
+        <select @onchange="OnPick">
+            <option value="">Select an event</option>
+            @foreach (var e in events)
+            {
+                <option value="@e.Id" selected="@(e.Id == eventId)">@e.Title (@e.StartsAt.ToString("MMM d, yyyy"))</option>
+            }
+        </select>
+    </label>
+
+    @if (eventId != null)
+    {
+        <p class="muted">@rows.Count registered</p>
+        <div class="table-wrap">
+            <table class="data">
+                <thead><tr><th>Name</th><th>Email</th><th>Region</th><th>Chapter</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var (reg, p) in rows)
+                {
+                    <tr>
+                        <td>@(p?.FullName ?? "(no profile)")</td>
+                        <td>@p?.Email</td>
+                        <td>@p?.Region</td>
+                        <td>@p?.Chapter</td>
+                        <td>@if (p != null) { <span class="badge @p.Status">@p.Status</span> }</td>
+                        <td class="row-actions">
+                            @if (confirmId == reg.Id) { <button class="btn btn-danger btn-sm" @onclick="() => Remove(reg)">Confirm remove</button> }
+                            else { <button class="btn btn-danger btn-sm" @onclick="() => confirmId = reg.Id">Remove</button> }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "event")] public Guid? EventQuery { get; set; }
+
+    List<EventItem> events = [];
+    List<(Registration, Profile?)> rows = [];
+    Guid? eventId;
+    Guid? confirmId;
+    string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { events = await Api.List<EventItem>("events", "order=starts_at.desc"); }
+        catch (ApiException ex) { error = ex.Message; return; }
+        eventId = EventQuery;
+        await LoadRows();
+    }
+
+    async Task OnPick(ChangeEventArgs a)
+    {
+        eventId = Guid.TryParse(a.Value?.ToString(), out var g) ? g : null;
+        await LoadRows();
+    }
+
+    async Task LoadRows()
+    {
+        rows = [];
+        if (eventId is not { } id) return;
+        try
+        {
+            var regs = await Api.List<Registration>("event_registrations", $"event_id=eq.{id}&order=created_at.asc");
+            var ids = string.Join(",", regs.Select(r => r.UserId));
+            var profiles = regs.Count == 0 ? [] : await Api.List<Profile>("profiles", $"id=in.({ids})");
+            rows = regs.Select(r => (r, profiles.FirstOrDefault(p => p.Id == r.UserId))).ToList();
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task Remove(Registration r)
+    {
+        error = null; confirmId = null;
+        try { await Api.Delete("event_registrations", r.Id!.Value); await LoadRows(); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+}

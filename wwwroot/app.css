@@ -1,0 +1,121 @@
+/* Loaded after Bootstrap and psabe.css (the friend's design). Holds only what the design lacks:
+   admin tables/forms, login cards, event charts, and small fixes. */
+
+:root {
+  --green-900: #143c29;
+  --green-800: #245638;
+  --green-700: #39784f;
+  --gold-dark: #b88d25;
+  --ink: #26352b;
+  --cream: #f6f4ec;
+  --line: #e6ece6;
+  --danger: #b3261e;
+}
+
+/* layout helpers used by admin and account pages */
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 20px; }
+.section { padding: 48px 20px; }
+.muted { color: var(--muted); }
+.pre { white-space: pre-line; }
+h1:focus { outline: none; } /* Blazor focuses the page heading after navigation */
+
+/* buttons: Bootstrap .btn + the design's .btn-gold / .btn-green; add the two the design lacks */
+.btn-outline { background: #fff; color: var(--green); border: 1px solid var(--green); border-radius: 6px; padding: 12px 20px; font-weight: 600; }
+.btn-outline:hover { background: var(--cream); color: var(--green-900); }
+.btn.btn-sm { padding: .3rem .65rem; font-size: .8rem; border-radius: 5px; }
+
+/* brand name in the header (a span, so Blazor's focus-on-navigate lands on the page heading, not the logo) */
+.brand-name { display: block; font: 700 27px/1.2 "Outfit", sans-serif; letter-spacing: 3px; color: var(--green); }
+.main-navbar .nav-link.active { color: var(--gold-light); background: rgba(255,255,255,.08); }
+.mobile-actions { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px 0 18px; }
+.mobile-actions form { margin: 0; }
+.header-actions form { margin: 0; }
+@media (max-width: 576px) { .brand-name { font-size: 22px; } }
+
+/* design fixes */
+.announcement-track:hover { animation-play-state: paused; }
+.section-heading.text-center { display: block; }
+.text-center .section-description { margin-left: auto; margin-right: auto; }
+.img-fallback { width: 100%; height: 100%; display: grid; place-items: center; background: #eaf0e9; color: #9bb0a0; font-size: 44px; }
+.hero-fade { animation: fadeIn .8s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* inner-page header band */
+.page-banner { background: linear-gradient(110deg, var(--green-900), var(--green-800)); color: #fff; padding: 56px 0; }
+.page-banner h1 { color: #fff; font-size: clamp(32px, 4.5vw, 48px); margin: 0 0 10px; }
+.page-banner p { color: #dce8de; max-width: 640px; margin: 0; line-height: 1.8; }
+
+/* membership steps, contact cards, resources list */
+.step-card, .contact-card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 28px 24px; height: 100%; }
+.step-card .step-no { width: 42px; height: 42px; border-radius: 50%; background: var(--green); color: var(--gold-light); display: grid; place-items: center; font: 700 18px "Outfit", sans-serif; margin-bottom: 14px; }
+.step-card h5, .contact-card h5 { color: var(--green-dark); }
+.step-card p, .contact-card p { color: var(--muted); font-size: 14px; line-height: 1.7; margin: 0; }
+.contact-card > i { font-size: 30px; color: var(--gold); display: block; margin-bottom: 12px; }
+.resource-group h3 { color: var(--green-dark); font-size: 24px; }
+.resource-group h3 i { color: var(--gold); margin-right: 8px; }
+.resource-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; }
+.resource-item strong { color: var(--green-dark); }
+.resource-item p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+
+/* events page rows with attendee charts */
+.event-row { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 28px; margin-bottom: 24px; }
+.event-title { color: var(--green-dark); font-size: 26px; }
+.event-meta { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+.event-meta i { color: var(--gold); }
+.event-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; align-items: center; }
+.chart { border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; font-size: .78rem; }
+.bar-row { display: grid; grid-template-columns: 78px 1fr; align-items: center; gap: 8px; margin: 3px 0; }
+.bar-row > span:first-child { text-align: right; color: var(--muted); }
+.bar { height: 16px; padding-left: 4px; color: #000; font-size: .7rem; line-height: 16px; min-width: 18px; }
+.chart-total { text-align: center; font-weight: 700; margin-top: 8px; }
+
+/* login / register / forgot / reset / account */
+.auth-card { max-width: 440px; margin: 56px auto; padding: 32px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+label.field { display: block; margin-bottom: 14px; font-weight: 500; font-size: .9rem; }
+.field input, .field select, .field textarea { display: block; width: 100%; margin-top: 4px; padding: 10px 12px; font: inherit; border: 1px solid #c8cfc6; border-radius: 4px; }
+.field input[type=checkbox] { display: inline; width: auto; margin-right: 8px; }
+.form-grid { display: grid; gap: 0 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.alert-error { background: #fdeceb; color: var(--danger); border-color: transparent; }
+.alert-ok { background: #e7f4ea; color: var(--green-800); border-color: transparent; }
+.validation-message { color: var(--danger); font-size: .8rem; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: .75rem; font-weight: 700; background: var(--cream); color: var(--ink); }
+.badge.active { background: #e0f1e5; color: var(--green-800); }
+.badge.pending { background: #fff3d6; color: #7a5a00; }
+.badge.inactive { background: #eee; color: #666; }
+
+/* admin */
+.admin-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--line); }
+.admin-tabs a { padding: 10px 16px; text-decoration: none; font-weight: 700; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.admin-tabs a.active { color: var(--green-800); border-bottom-color: var(--gold); }
+.panel { background: var(--cream); padding: 20px; border-radius: 6px; margin-bottom: 24px; }
+.table-wrap { overflow-x: auto; }
+table.data { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.data th, table.data td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.data th { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* image upload (drag and drop) */
+.upload { display: grid; gap: 8px; }
+.dropzone { position: relative; display: grid; place-items: center; min-height: 140px; border: 2px dashed #b9c9bd; border-radius: 12px;
+  background: #f4f8f4; color: #4d6b55; cursor: pointer; overflow: hidden; text-align: center; padding: 10px; }
+.dropzone:hover, .dropzone:focus-within { border-color: var(--gold, #c9a13b); background: #fbf7e9; }
+.dropzone.busy { opacity: .6; }
+.dropzone img { max-width: 100%; max-height: 180px; border-radius: 8px; display: block; margin: 0 auto 6px; }
+.dropzone .dz-text { font-size: 14px; }
+.dropzone input[type=file] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.upload-url { width: 100%; }
+.upload-circle .dropzone { width: 160px; height: 160px; min-height: 0; border-radius: 50%; padding: 0; }
+.upload-circle .dropzone img { width: 100%; height: 100%; max-height: none; object-fit: cover; border-radius: 50%; margin: 0; }
+.upload-circle .dz-text { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(20,60,35,.7); color: #fff; font-size: 11px; padding: 6px 0; }
+.avatar-panel { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+
+/* round profile photo */
+.avatar-wrap { display: grid; justify-items: center; gap: 8px; }
+.avatar { position: relative; width: 150px; height: 150px; border-radius: 50%; overflow: hidden; cursor: pointer; display: grid; place-items: center;
+  background: #e3ece4; color: #8fa896; font-size: 72px; border: 4px solid #fff; box-shadow: 0 2px 10px rgba(0,0,0,.2); }
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar-edit { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(20,60,35,.55); color: #fff; font-size: 28px; opacity: 0; transition: opacity .15s; }
+.avatar:hover .avatar-edit, .avatar:focus-within .avatar-edit { opacity: 1; }
+.avatar.busy { opacity: .6; }
+.avatar-panel { display: flex; justify-content: center; }

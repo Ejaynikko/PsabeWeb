@@ -1,0 +1,92 @@
+@page "/admin/news"
+@attribute [Authorize(Roles = "admin")]
+@inject SupabaseApi Api
+
+<PageTitle>News - Admin - PSABE</PageTitle>
+
+<section class="wrap section">
+    <h1 class="section-title">Admin</h1>
+    <AdminTabs />
+    @if (error != null) { <div class="alert alert-error">@error</div> }
+
+    @if (form is null)
+    {
+        <button class="btn btn-gold" @onclick="() => form = new NewsItem()">+ New post</button>
+    }
+    else
+    {
+        <EditForm Model="form" OnValidSubmit="Save" class="panel">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <h3>@(form.Id is null ? "New post" : "Edit post")</h3>
+            <label class="field">Title <InputText @bind-Value="form.Title" /></label>
+            <label class="field">Category <InputText @bind-Value="form.Category" /></label>
+            <div class="field">Image <ImageUpload @bind-Value="form.ImageUrl" Folder="site/news" /></div>
+            <label class="field">Body <InputTextArea rows="6" @bind-Value="form.Body" /></label>
+            <label class="field"><InputCheckbox @bind-Value="form.IsPublished" /> Published</label>
+            <button class="btn btn-gold" type="submit">Save</button>
+            <button class="btn btn-outline" type="button" @onclick="() => form = null">Cancel</button>
+        </EditForm>
+    }
+
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Title</th><th>Date</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var n in items)
+            {
+                <tr>
+                    <td>@n.Title</td>
+                    <td>@n.PublishedAt?.ToString("MMM d, yyyy")</td>
+                    <td><span class="badge @(n.IsPublished ? "active" : "pending")">@(n.IsPublished ? "published" : "draft")</span></td>
+                    <td class="row-actions">
+                        <button class="btn btn-outline btn-sm" @onclick="() => form = Copy(n)">Edit</button>
+                        @if (confirmId == n.Id) { <button class="btn btn-danger btn-sm" @onclick="() => Remove(n)">Confirm delete</button> }
+                        else { <button class="btn btn-danger btn-sm" @onclick="() => confirmId = n.Id">Delete</button> }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@code {
+    List<NewsItem> items = [];
+    NewsItem? form;
+    Guid? confirmId;
+    string? error;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    async Task Load()
+    {
+        try { items = await Api.List<NewsItem>("news", "order=published_at.desc"); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    static NewsItem Copy(NewsItem n) => new()
+    {
+        Id = n.Id, Title = n.Title, Body = n.Body, ImageUrl = n.ImageUrl, Category = n.Category, IsPublished = n.IsPublished, PublishedAt = n.PublishedAt,
+    };
+
+    async Task Save()
+    {
+        error = null;
+        try
+        {
+            if (form!.Id is { } id) await Api.Update("news", id, form);
+            else await Api.Insert("news", form);
+            form = null;
+            await Load();
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task Remove(NewsItem n)
+    {
+        error = null; confirmId = null;
+        try { await Api.Delete("news", n.Id!.Value); await Load(); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+}

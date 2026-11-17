@@ -1,0 +1,100 @@
+@page "/admin/resources"
+@attribute [Authorize(Roles = "admin")]
+@inject SupabaseApi Api
+
+<PageTitle>Resources - Admin - PSABE</PageTitle>
+
+<section class="wrap section">
+    <h1 class="section-title">Admin</h1>
+    <AdminTabs />
+    @if (error != null) { <div class="alert alert-error">@error</div> }
+
+    @if (form is null)
+    {
+        <button class="btn btn-gold" @onclick="() => form = new ResourceItem()">+ New resource</button>
+    }
+    else
+    {
+        <EditForm Model="form" OnValidSubmit="Save" class="panel">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <h3>@(form.Id is null ? "New resource" : "Edit resource")</h3>
+            <label class="field">Title <InputText @bind-Value="form.Title" /></label>
+            <label class="field">Description <InputTextArea rows="3" @bind-Value="form.Description" /></label>
+            <label class="field">Category
+                <InputSelect @bind-Value="form.Category">
+                    <option value="publications">Publications</option>
+                    <option value="references">Technical References</option>
+                    <option value="downloads">Downloads</option>
+                </InputSelect>
+            </label>
+            <label class="field">File URL <InputText @bind-Value="form.FileUrl" /></label>
+            <label class="field">Sort order <InputNumber @bind-Value="form.SortOrder" /></label>
+            <label class="field"><InputCheckbox @bind-Value="form.IsPublished" /> Published</label>
+            <button class="btn btn-gold" type="submit">Save</button>
+            <button class="btn btn-outline" type="button" @onclick="() => form = null">Cancel</button>
+        </EditForm>
+    }
+
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Title</th><th>Category</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var r in items)
+            {
+                <tr>
+                    <td>@r.Title</td>
+                    <td>@r.Category</td>
+                    <td><span class="badge @(r.IsPublished ? "active" : "pending")">@(r.IsPublished ? "published" : "hidden")</span></td>
+                    <td class="row-actions">
+                        <button class="btn btn-outline btn-sm" @onclick="() => form = Copy(r)">Edit</button>
+                        @if (confirmId == r.Id) { <button class="btn btn-danger btn-sm" @onclick="() => Remove(r)">Confirm delete</button> }
+                        else { <button class="btn btn-danger btn-sm" @onclick="() => confirmId = r.Id">Delete</button> }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@code {
+    List<ResourceItem> items = [];
+    ResourceItem? form;
+    Guid? confirmId;
+    string? error;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    async Task Load()
+    {
+        try { items = await Api.List<ResourceItem>("resources", "order=category.asc,sort_order.asc,title.asc"); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    static ResourceItem Copy(ResourceItem r) => new()
+    {
+        Id = r.Id, Title = r.Title, Description = r.Description, Category = r.Category,
+        FileUrl = r.FileUrl, SortOrder = r.SortOrder, IsPublished = r.IsPublished,
+    };
+
+    async Task Save()
+    {
+        error = null;
+        try
+        {
+            if (form!.Id is { } id) await Api.Update("resources", id, form);
+            else await Api.Insert("resources", form);
+            form = null;
+            await Load();
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task Remove(ResourceItem r)
+    {
+        error = null; confirmId = null;
+        try { await Api.Delete("resources", r.Id!.Value); await Load(); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+}

@@ -1,0 +1,101 @@
+@page "/admin/officers"
+@attribute [Authorize(Roles = "admin")]
+@inject SupabaseApi Api
+
+<PageTitle>Officers - Admin - PSABE</PageTitle>
+
+<section class="wrap section">
+    <h1 class="section-title">Admin</h1>
+    <AdminTabs />
+    @if (error != null) { <div class="alert alert-error">@error</div> }
+
+    @if (form is null)
+    {
+        <button class="btn btn-gold" @onclick="() => form = new Officer()">+ New officer</button>
+    }
+    else
+    {
+        <EditForm Model="form" OnValidSubmit="Save" class="panel">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <h3>@(form.Id is null ? "New officer" : "Edit officer")</h3>
+            <div class="form-grid">
+                <label class="field">Full name <InputText @bind-Value="form.FullName" /></label>
+                <label class="field">Position <InputText @bind-Value="form.Position" /></label>
+                <label class="field">Region
+                    <InputSelect @bind-Value="form.Region">
+                        <option value="">-- none --</option>
+                        @foreach (var r in Regions.All) { <option value="@r">@r</option> }
+                    </InputSelect>
+                </label>
+                <label class="field">Term <InputText @bind-Value="form.Term" /></label>
+                <div class="field">Photo <ImageUpload @bind-Value="form.PhotoUrl" Folder="site/officers" /></div>
+                <label class="field">Sort order <InputNumber @bind-Value="form.SortOrder" /></label>
+            </div>
+            <button class="btn btn-gold" type="submit">Save</button>
+            <button class="btn btn-outline" type="button" @onclick="() => form = null">Cancel</button>
+        </EditForm>
+    }
+
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Order</th><th>Name</th><th>Position</th><th>Region</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var o in items)
+            {
+                <tr>
+                    <td>@o.SortOrder</td>
+                    <td>@o.FullName</td>
+                    <td>@o.Position</td>
+                    <td>@o.Region</td>
+                    <td class="row-actions">
+                        <button class="btn btn-outline btn-sm" @onclick="() => form = Copy(o)">Edit</button>
+                        @if (confirmId == o.Id) { <button class="btn btn-danger btn-sm" @onclick="() => Remove(o)">Confirm delete</button> }
+                        else { <button class="btn btn-danger btn-sm" @onclick="() => confirmId = o.Id">Delete</button> }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@code {
+    List<Officer> items = [];
+    Officer? form;
+    Guid? confirmId;
+    string? error;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    async Task Load()
+    {
+        try { items = await Api.List<Officer>("officers", "order=sort_order.asc,full_name.asc"); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    static Officer Copy(Officer o) => new()
+    {
+        Id = o.Id, FullName = o.FullName, Position = o.Position, Region = o.Region, Term = o.Term, PhotoUrl = o.PhotoUrl, SortOrder = o.SortOrder,
+    };
+
+    async Task Save()
+    {
+        error = null;
+        try
+        {
+            if (form!.Id is { } id) await Api.Update("officers", id, form);
+            else await Api.Insert("officers", form);
+            form = null;
+            await Load();
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task Remove(Officer o)
+    {
+        error = null; confirmId = null;
+        try { await Api.Delete("officers", o.Id!.Value); await Load(); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+}

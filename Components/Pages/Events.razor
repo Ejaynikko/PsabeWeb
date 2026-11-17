@@ -1,0 +1,109 @@
+@page "/events"
+@inject SupabaseApi Api
+
+<PageTitle>Events - PSABE</PageTitle>
+
+<PageBanner Tag="WHAT'S HAPPENING" Title="Events"
+            Subtitle="Conventions, trainings and gatherings of the PSABE community, with attendance by region." />
+
+<section class="section-padding light-section">
+    <div class="container">
+        @if (error != null) { <div class="alert alert-error">@error</div> }
+        @if (events is null) { <p class="text-muted">Loading...</p> }
+        else if (events.Count == 0) { <p class="text-muted">No events yet.</p> }
+
+        @foreach (var e in events ?? [])
+        {
+            var mine = myRegistrations.FirstOrDefault(r => r.EventId == e.Id);
+            <div class="event-row">
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <h3 class="event-title">@e.Title</h3>
+                        <div class="event-meta">
+                            <i class="bi bi-calendar-event me-1"></i>@e.StartsAt.ToString("MMMM d, yyyy")@(e.EndsAt is { } end ? " to " + end.ToString("MMMM d, yyyy") : "")
+                            @if (!string.IsNullOrWhiteSpace(e.Location)) { <span class="ms-3"><i class="bi bi-geo-alt me-1"></i>@e.Location</span> }
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(e.Summary)) { <p class="pre">@e.Summary</p> }
+
+                        <div class="event-actions">
+                            <AuthorizeView>
+                                <Authorized>
+                                    @if (mine is null)
+                                    {
+                                        <button class="btn btn-gold" @onclick="() => Register(e)">Register to event</button>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge active">You are registered</span>
+                                        @if (unregId == mine.Id) { <button class="btn btn-danger btn-sm" @onclick="() => Unregister(mine)">Confirm unregister</button> }
+                                        else { <button class="btn btn-outline-green btn-sm" @onclick="() => unregId = mine.Id">Unregister</button> }
+                                        @if (!string.IsNullOrWhiteSpace(mine.CertificateUrl))
+                                        {
+                                            <a class="btn btn-outline-green" href="@Urls.Safe(mine.CertificateUrl)" target="_blank" rel="noopener">
+                                                <i class="bi bi-file-earmark-text me-1"></i>Download certificate
+                                            </a>
+                                        }
+                                    }
+                                </Authorized>
+                                <NotAuthorized><a href="/login?returnUrl=/events" data-enhance-nav="false">Log in to register to event</a></NotAuthorized>
+                            </AuthorizeView>
+                            @if (!string.IsNullOrWhiteSpace(e.ProgramUrl))
+                            {
+                                <a class="btn btn-outline-green" href="@Urls.Safe(e.ProgramUrl)" target="_blank" rel="noopener">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i>Download event program
+                                </a>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <RegionChart Counts="counts.Where(c => c.EventId == e.Id)" />
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    List<EventItem>? events;
+    List<RegionCount> counts = [];
+    List<Registration> myRegistrations = [];
+    string? error;
+    Guid? unregId;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    async Task Load()
+    {
+        try
+        {
+            events = await Api.List<EventItem>("events", "is_published=eq.true&order=starts_at.desc");
+            counts = await Api.List<RegionCount>("event_region_counts");
+            if (await Api.CurrentUserId() is { } uid)
+                myRegistrations = await Api.List<Registration>("event_registrations", $"user_id=eq.{uid}");
+        }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException) { error = ex.Message; events ??= []; }
+    }
+
+    async Task Unregister(Registration r)
+    {
+        error = null; unregId = null;
+        try { await Api.Delete("event_registrations", r.Id!.Value); await Load(); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task Register(EventItem e)
+    {
+        error = null;
+        try
+        {
+            await Api.Insert("event_registrations", new { event_id = e.Id, user_id = await Api.CurrentUserId() });
+            await Load();
+        }
+        catch (ApiException)
+        {
+            // RLS rejects the insert unless the member's status is 'active'
+            error = "Registration failed. Your membership may still be pending approval.";
+        }
+    }
+}

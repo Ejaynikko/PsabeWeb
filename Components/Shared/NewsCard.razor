@@ -1,0 +1,22 @@
+<article class="news-card">
+    <div class="news-image">
+        @if (!string.IsNullOrWhiteSpace(Item.ImageUrl)) { <img src="@Item.ImageUrl" alt="@Item.Title" /> }
+        else { <div class="img-fallback"><i class="bi bi-newspaper"></i></div> }
+    </div>
+    <div class="news-body">
+        <span class="news-category">@Item.Category</span>
+        @if (Item.PublishedAt is { } published)
+        {
+            <small class="news-date"><i class="bi bi-calendar3 me-1"></i>@published.ToString("MMMM d, yyyy")</small>
+        }
+        <h4>@Item.Title</h4>
+        <p class='pre @(Full ? "" : "clamp")'>@Item.Body</p>
+        @if (!Full) { <a href="/news" class="news-link">Read More <i class="bi bi-arrow-right"></i></a> }
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public NewsItem Item { get; set; } = default!;
+    /// <summary>true on the News page (whole text); false on the home page (short preview + link).</summary>
+    [Parameter] public bool Full { get; set; }
+}

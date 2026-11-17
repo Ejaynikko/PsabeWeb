@@ -1,0 +1,52 @@
+C:\Philmech PSABE\Prototype\PsabeWeb\bin\Debug\net9.0\win-x64\appsettings.json
+C:\Philmech PSABE\Prototype\PsabeWeb\bin\Debug\net9.0\win-x64\PsabeWeb.staticwebassets.runtime.json
+C:\Philmech PSABE\Prototype\PsabeWeb\bin\Debug\net9.0\win-x64\PsabeWeb.staticwebassets.endpoints.json
+C:\Philmech PSABE\Prototype\PsabeWeb\bin\Debug\net9.0\win-x64\PsabeWeb.exe
+C:\Philmech PSABE\Prototype\PsabeWeb\bin\Debug\net9.0\win-x64\PsabeWeb.deps.json
+C:\Philmech PSABE\Prototype\PsabeWeb\bin\Debug\net9.0\win-x64\PsabeWeb.runtimeconfig.json
+C:\Philmech PSABE\Prototype\PsabeWeb\bin\Debug\net9.0\win-x64\PsabeWeb.dll
+C:\Philmech PSABE\Prototype\PsabeWeb\bin\Debug\net9.0\win-x64\PsabeWeb.pdb
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\rpswa.dswa.cache.json
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\PsabeWeb.GeneratedMSBuildEditorConfig.editorconfig
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\PsabeWeb.AssemblyInfoInputs.cache
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\PsabeWeb.AssemblyInfo.cs
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\PsabeWeb.csproj.CoreCompileInputs.cache
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\PsabeWeb.MvcApplicationPartsAssemblyInfo.cache
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\rjimswa.dswa.cache.json
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\rjsmrazor.dswa.cache.json
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\rjsmcshtml.dswa.cache.json
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\scopedcss\bundle\PsabeWeb.styles.css
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\compressed\ymbesity7m-{0}-fhwq10fif6-fhwq10fif6.gz
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\staticwebassets.build.json
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\staticwebassets.build.json.cache
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\staticwebassets.development.json
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\staticwebassets.build.endpoints.json
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\swae.build.ex.cache
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\PsabeWeb.dll
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\refint\PsabeWeb.dll
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\PsabeWeb.pdb
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\PsabeWeb.genruntimeconfig.cache
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\ref\PsabeWeb.dll
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\HotReload\Microsoft.NET.Sdk.BlazorWeb.HotReload.lib.module.js
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\HotReload\Microsoft.NET.Sdk.BlazorWeb.HotReload.BrowserTools.js
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\HotReload\Microsoft.NET.Sdk.BlazorWeb.HotReload.BrowserTools.Config.js
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\HotReload\browser-tools-key.public.json
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\HotReload\browser-tools-key.private.json
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\jsmodules\jsmodules.build.manifest.json
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\scopedcss\scopedcss.cache
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\compressed\up4s6jgu64-{0}-tchfgznwy8-tchfgznwy8.gz
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\compressed\5p44r8h8ix-{0}-4omgt27zie-4omgt27zie.gz
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\compressed\ety1y8gmmo-{0}-og6iwfilwk-og6iwfilwk.gz
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\compressed\nkl9octma9-{0}-hrrigd3e7q-hrrigd3e7q.gz
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\compressed\odqq638fgk-{0}-v1vy2to33n-v1vy2to33n.gz
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\compressed\et66xkd6xh-{0}-ysew0n4kjn-ysew0n4kjn.gz
+C:\Philmech PSABE\Prototype\PsabeWeb\bin\Debug\net9.0\win-x64\PsabeWeb.runtimeconfig.dev.json
+C:\tmp\psabe-audit-build\appsettings.json
+C:\tmp\psabe-audit-build\PsabeWeb.staticwebassets.runtime.json
+C:\tmp\psabe-audit-build\PsabeWeb.staticwebassets.endpoints.json
+C:\tmp\psabe-audit-build\PsabeWeb.deps.json
+C:\tmp\psabe-audit-build\PsabeWeb.runtimeconfig.json
+C:\tmp\psabe-audit-build\PsabeWeb.runtimeconfig.dev.json
+C:\tmp\psabe-audit-build\PsabeWeb.dll
+C:\tmp\psabe-audit-build\PsabeWeb.pdb
+C:\Philmech PSABE\Prototype\PsabeWeb\obj\Debug\net9.0\win-x64\PsabeWeb.csproj.Up2Date

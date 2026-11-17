@@ -1,0 +1,61 @@
+@page "/register"
+@attribute [ExcludeFromInteractiveRouting]
+@inject SupabaseApi Api
+
+<PageTitle>Become a Member - PSABE</PageTitle>
+
+<section class="auth-card">
+    <h1>Become a Member</h1>
+    @if (done)
+    {
+        <div class="alert alert-ok">Account created. Check your email to confirm it, then wait for a PSABE admin to approve your membership.</div>
+    }
+    else
+    {
+        @if (error != null) { <div class="alert alert-error">@error</div> }
+        <EditForm Model="Input" FormName="register" OnValidSubmit="RegisterAsync">
+            <DataAnnotationsValidator />
+            <label class="field">Full name
+                <InputText @bind-Value="Input.FullName" autocomplete="name" />
+                <ValidationMessage For="() => Input.FullName" />
+            </label>
+            <label class="field">Email
+                <InputText type="email" @bind-Value="Input.Email" autocomplete="username" />
+                <ValidationMessage For="() => Input.Email" />
+            </label>
+            <label class="field">Password (at least 8 characters)
+                <InputText type="password" @bind-Value="Input.Password" autocomplete="new-password" />
+                <ValidationMessage For="() => Input.Password" />
+            </label>
+            <Captcha />
+            <button class="btn btn-gold" type="submit">Create account</button>
+        </EditForm>
+    }
+    <p class="muted">Already a member? <a href="/login" data-enhance-nav="false">Log in</a></p>
+</section>
+
+@code {
+    [CascadingParameter] HttpContext HttpContext { get; set; } = default!;
+    [SupplyParameterFromForm] RegisterModel Input { get; set; } = new();
+    bool done;
+    string? error;
+
+    async Task RegisterAsync()
+    {
+        var captcha = HttpContext.Request.Form["h-captcha-response"].ToString();
+        if (string.IsNullOrEmpty(captcha)) { error = "Please complete the captcha."; return; }
+        try
+        {
+            await Api.SignUp(Input.Email, Input.Password, Input.FullName, captcha);
+            done = true;
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    public class RegisterModel
+    {
+        [Required] public string FullName { get; set; } = "";
+        [Required, EmailAddress] public string Email { get; set; } = "";
+        [Required, MinLength(8)] public string Password { get; set; } = "";
+    }
+}

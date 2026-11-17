@@ -1,0 +1,51 @@
+@inject SupabaseApi Api
+@inject IJSRuntime JS
+
+@* Round profile photo. Click it to pick a new picture; it is square-cropped in the browser before upload. *@
+<div class="avatar-wrap">
+    <label class="avatar @(busy ? "busy" : "")" title="Change photo">
+        @if (!string.IsNullOrWhiteSpace(Value)) { <img src="@Urls.Safe(Value)" alt="Profile photo" /> }
+        else { <i class="bi bi-person-fill"></i> }
+        <span class="avatar-edit"><i class="bi bi-camera-fill"></i></span>
+        <InputFile @ref="input" OnChange="Picked" accept="image/png,image/jpeg,image/webp" style="display:none" />
+    </label>
+    <small class="muted">@(busy ? "Uploading..." : "Click the photo to change it")</small>
+    @if (error != null) { <div class="alert alert-error">@error</div> }
+</div>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    /// <summary>Storage folder, "avatars/{userId}" (the only place members may write).</summary>
+    [Parameter, EditorRequired] public string Folder { get; set; } = "";
+
+    static readonly string[] Types = ["image/jpeg", "image/png", "image/webp"];
+
+    InputFile? input;
+    bool busy;
+    string? error;
+
+    async Task Picked(InputFileChangeEventArgs e)
+    {
+        error = null;
+        if (!Types.Contains(e.File.ContentType)) { error = "Only JPG, PNG or WebP images are allowed."; return; }
+        if (e.File.Size > 20 * 1024 * 1024) { error = "That image is too large (20 MB max)."; return; }
+
+        busy = true;
+        try
+        {
+            await using var cropped = await JS.InvokeAsync<IJSStreamReference?>("psabeCropSquare", input!.Element, 512);
+            if (cropped is null) return;
+            await using var stream = await cropped.OpenReadStreamAsync(5 * 1024 * 1024);
+            using var ms = new MemoryStream(); // buffered so the upload has a known length
+            await stream.CopyToAsync(ms);
+            ms.Position = 0;
+            // shortcut: replaced photos stay in storage, clean the bucket occasionally in Supabase > Storage
+            var url = await Api.Upload($"{Folder}/{Guid.NewGuid():N}.jpg", ms, "image/jpeg");
+            await ValueChanged.InvokeAsync(url);
+        }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException or IOException or JSException)
+        { error = "Upload failed: " + ex.Message; }
+        finally { busy = false; }
+    }
+}

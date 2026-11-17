@@ -1,0 +1,56 @@
+@page "/resources"
+@inject SupabaseApi Api
+
+<PageTitle>Resources - PSABE</PageTitle>
+
+<PageBanner Tag="KNOWLEDGE CENTER" Title="Resources and Publications"
+            Subtitle="Professional references, publications, technical documents, forms and templates." />
+
+<section class="section-padding">
+    <div class="container">
+        @if (items is null) { <p class="text-muted">Loading...</p> }
+        else
+        {
+            @foreach (var c in Cats)
+            {
+                var rows = items.Where(r => r.Category == c.Key).ToList();
+                <div class="resource-group mb-5">
+                    <h3><i class="bi @c.Icon"></i>@c.Label</h3>
+                    <p class="text-muted">@c.Blurb</p>
+                    @if (rows.Count == 0) { <p class="text-muted">No documents yet.</p> }
+                    @foreach (var r in rows)
+                    {
+                        <div class="resource-item">
+                            <div>
+                                <strong>@r.Title</strong>
+                                @if (!string.IsNullOrWhiteSpace(r.Description)) { <p>@r.Description</p> }
+                            </div>
+                            <a class="btn btn-green btn-sm" href="@Urls.Safe(r.FileUrl)" target="_blank" rel="noopener">
+                                <i class="bi bi-download me-1"></i>Download
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</section>
+
+@code {
+    record Cat(string Key, string Label, string Icon, string Blurb);
+
+    static readonly Cat[] Cats =
+    [
+        new("publications", "Publications", "bi-file-earmark-pdf", "Professional publications and organizational documents."),
+        new("references", "Technical References", "bi-journal-text", "Technical references and engineering materials."),
+        new("downloads", "Downloads", "bi-cloud-download", "Forms, templates, and downloadable documents."),
+    ];
+
+    List<ResourceItem>? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { items = await Api.List<ResourceItem>("resources", "is_published=eq.true&order=sort_order.asc,title.asc"); }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException) { items = []; }
+    }
+}

@@ -1,0 +1,58 @@
+@page "/membership"
+
+<PageTitle>Membership - PSABE</PageTitle>
+
+<AuthorizeView>
+<NotAuthorized>
+<PageBanner Tag="JOIN PSABE" Title="Membership"
+            Subtitle="Create an account, confirm your email, then wait for a PSABE admin to approve your membership." />
+
+<MembershipBanner />
+
+<section class="section-padding">
+    <div class="container">
+        <div class="section-heading text-center">
+            <span class="section-tag">HOW IT WORKS</span>
+            <h2 class="section-title">Three steps to join</h2>
+        </div>
+
+        <div class="row g-4 mt-3">
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-no">1</div>
+                    <h5>Create your account</h5>
+                    <p>Fill in your name, email and a password on the sign-up page.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-no">2</div>
+                    <h5>Confirm your email</h5>
+                    <p>Open the message we send you and click the confirmation link.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-no">3</div>
+                    <h5>Wait for approval</h5>
+                    <p>A PSABE admin approves your membership. Approved members can register for events and download certificates.</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center mt-5">
+            <a class="btn btn-outline-green" href="/login" data-enhance-nav="false">I already have an account</a>
+        </p>
+    </div>
+</section>
+</NotAuthorized>
+<Authorized>
+<section class="section-padding">
+    <div class="container text-center">
+        <h2 class="section-title">You are already signed in</h2>
+        <p class="text-muted">Manage your membership details in your account.</p>
+        <a class="btn btn-gold" href="/account">My Account</a>
+    </div>
+</section>
+</Authorized>
+</AuthorizeView>

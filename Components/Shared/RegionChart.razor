@@ -1,0 +1,28 @@
+@* Horizontal attendee bars per region, like the current PSABE events page. *@
+@{
+    var rows = Counts.OrderBy(c => Order(c.Region)).ToList();
+    var max = Math.Max(1, rows.Count == 0 ? 1 : rows.Max(r => r.Attendees));
+}
+<div class="chart">
+    @foreach (var r in rows)
+    {
+        <div class="bar-row">
+            <span>@r.Region</span>
+            <div class="bar" style="width:@((r.Attendees * 100.0 / max).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%;background:@Palette[Order(r.Region) % Palette.Length]">@r.Attendees</div>
+        </div>
+    }
+    <div class="chart-total">Number of Attendees: @rows.Sum(r => r.Attendees)</div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IEnumerable<RegionCount> Counts { get; set; } = [];
+
+    static readonly string[] Palette =
+        ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#ffff99", "#b15928"];
+
+    static int Order(string region)
+    {
+        var i = Array.IndexOf(Regions.All, region);
+        return i < 0 ? Regions.All.Length : i;
+    }
+}

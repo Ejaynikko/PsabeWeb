@@ -1,0 +1,17 @@
+<div class="event-card">
+    <div class="event-image">
+        @if (!string.IsNullOrWhiteSpace(Item.ImageUrl)) { <img src="@Item.ImageUrl" alt="@Item.Title" /> }
+        else { <div class="img-fallback"><i class="bi bi-calendar-event"></i></div> }
+        <span class="event-badge"><i class="bi bi-calendar-event me-1"></i>@Item.StartsAt.ToString("MMM d, yyyy")</span>
+    </div>
+    <div class="event-body">
+        <h4>@Item.Title</h4>
+        @if (!string.IsNullOrWhiteSpace(Item.Summary)) { <p class="clamp">@Item.Summary</p> }
+        @if (!string.IsNullOrWhiteSpace(Item.Location)) { <div class="event-venue"><i class="bi bi-geo-alt"></i> @Item.Location</div> }
+        <a href="/events" class="event-link">Event Details <i class="bi bi-arrow-right"></i></a>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public EventItem Item { get; set; } = default!;
+}

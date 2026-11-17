@@ -1,0 +1,78 @@
+@page "/login"
+@attribute [ExcludeFromInteractiveRouting]
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@inject SupabaseApi Api
+@inject NavigationManager Nav
+
+<PageTitle>Member Login - PSABE</PageTitle>
+
+<section class="auth-card">
+    <h1>Member Login</h1>
+    @if (Reset == true) { <div class="alert alert-ok">Password updated. Log in with your new password.</div> }
+    @if (error != null) { <div class="alert alert-error">@error</div> }
+
+    <EditForm Model="Input" FormName="login" OnValidSubmit="LoginAsync">
+        <DataAnnotationsValidator />
+        <label class="field">Email
+            <InputText type="email" @bind-Value="Input.Email" autocomplete="username" />
+            <ValidationMessage For="() => Input.Email" />
+        </label>
+        <label class="field">Password
+            <InputText type="password" @bind-Value="Input.Password" autocomplete="current-password" />
+            <ValidationMessage For="() => Input.Password" />
+        </label>
+        <Captcha />
+        <button class="btn btn-gold" type="submit">Log in</button>
+    </EditForm>
+    <p><a href="/forgot-password" data-enhance-nav="false">Forgot password?</a></p>
+    <p class="muted">No account yet? <a href="/register" data-enhance-nav="false">Become a member</a></p>
+</section>
+
+@code {
+    [CascadingParameter] HttpContext HttpContext { get; set; } = default!;
+    [SupplyParameterFromQuery] string? ReturnUrl { get; set; }
+    [SupplyParameterFromQuery] bool? Reset { get; set; }
+    [SupplyParameterFromForm] LoginModel Input { get; set; } = new();
+    string? error;
+
+    async Task LoginAsync()
+    {
+        var captcha = HttpContext.Request.Form["h-captcha-response"].ToString();
+        if (string.IsNullOrEmpty(captcha)) { error = "Please complete the captcha."; return; }
+        try
+        {
+            var s = await Api.SignIn(Input.Email, Input.Password, captcha);
+            var profile = (await Api.List<Profile>("profiles", $"id=eq.{s.UserId}", s.AccessToken)).FirstOrDefault();
+
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, s.UserId.ToString()),
+                new(ClaimTypes.Name, string.IsNullOrWhiteSpace(profile?.FullName) ? s.Email : profile.FullName),
+                new(ClaimTypes.Email, s.Email),
+                new(ClaimTypes.Role, profile?.Role ?? "member"),
+                new("access_token", s.AccessToken),
+            };
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
+            await HttpContext.SignInAsync(principal, new AuthenticationProperties
+            {
+                ExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(Math.Max(60, s.ExpiresIn - 60)),
+            });
+
+            // only follow local return URLs (blocks open-redirect)
+            var target = ReturnUrl is { } r && r.StartsWith('/') && !r.StartsWith("//") && !r.StartsWith("/\\") ? r : "/";
+            Nav.NavigateTo(target, forceLoad: true);
+        }
+        catch (ApiException ex)
+        {
+            error = ex.Message;
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required, EmailAddress] public string Email { get; set; } = "";
+        [Required] public string Password { get; set; } = "";
+    }
+}

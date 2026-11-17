@@ -1,0 +1,18 @@
+@* Header buttons: login/register for guests, admin/account/logout for signed-in users. Used in the header and the mobile menu. *@
+<AuthorizeView>
+    <Authorized>
+        <AuthorizeView Roles="admin" Context="adminCtx">
+            <a class="btn btn-outline-green" href="/admin/members">Admin</a>
+        </AuthorizeView>
+        <a class="btn btn-outline-green" href="/account">@context.User.Identity?.Name</a>
+        <form method="post" action="/auth/logout">
+            <AntiforgeryToken />
+            <button class="btn btn-gold" type="submit">Log out</button>
+        </form>
+    </Authorized>
+    <NotAuthorized>
+        @* full page load so the captcha script runs on these pages *@
+        <a class="btn btn-outline-green" href="/register" data-enhance-nav="false">Become a Member</a>
+        <a class="btn btn-gold" href="/login" data-enhance-nav="false"><i class="bi bi-person-circle me-1"></i>Member Login</a>
+    </NotAuthorized>
+</AuthorizeView>

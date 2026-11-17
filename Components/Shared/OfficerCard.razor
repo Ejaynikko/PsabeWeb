@@ -1,0 +1,15 @@
+<div class="officer-card">
+    <div class="officer-image">
+        @if (!string.IsNullOrWhiteSpace(Item.PhotoUrl)) { <img src="@Item.PhotoUrl" alt="@Item.FullName" /> }
+        else { <div class="img-fallback"><i class="bi bi-person-fill"></i></div> }
+    </div>
+    <div class="officer-info">
+        <h5>@Item.FullName</h5>
+        <span>@Item.Position</span>
+        @if (!string.IsNullOrWhiteSpace(Item.Region)) { <div class="text-muted small mt-1">@Item.Region</div> }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Officer Item { get; set; } = default!;
+}

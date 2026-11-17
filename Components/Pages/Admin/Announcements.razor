@@ -1,0 +1,87 @@
+@page "/admin/announcements"
+@attribute [Authorize(Roles = "admin")]
+@inject SupabaseApi Api
+
+<PageTitle>Announcements - Admin - PSABE</PageTitle>
+
+<section class="wrap section">
+    <h1 class="section-title">Admin</h1>
+    <AdminTabs />
+    @if (error != null) { <div class="alert alert-error">@error</div> }
+
+    @if (form is null)
+    {
+        <button class="btn btn-gold" @onclick="() => form = new Announcement()">+ New announcement</button>
+    }
+    else
+    {
+        <EditForm Model="form" OnValidSubmit="Save" class="panel">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <h3>@(form.Id is null ? "New announcement" : "Edit announcement")</h3>
+            <label class="field">Text (shown in the scrolling ticker) <InputText @bind-Value="form.Text" /></label>
+            <label class="field">Sort order <InputNumber @bind-Value="form.SortOrder" /></label>
+            <label class="field"><InputCheckbox @bind-Value="form.IsActive" /> Active</label>
+            <button class="btn btn-gold" type="submit">Save</button>
+            <button class="btn btn-outline" type="button" @onclick="() => form = null">Cancel</button>
+        </EditForm>
+    }
+
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Text</th><th>Order</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var a in items)
+            {
+                <tr>
+                    <td>@a.Text</td>
+                    <td>@a.SortOrder</td>
+                    <td><span class="badge @(a.IsActive ? "active" : "pending")">@(a.IsActive ? "active" : "hidden")</span></td>
+                    <td class="row-actions">
+                        <button class="btn btn-outline btn-sm" @onclick="() => form = Copy(a)">Edit</button>
+                        @if (confirmId == a.Id) { <button class="btn btn-danger btn-sm" @onclick="() => Remove(a)">Confirm delete</button> }
+                        else { <button class="btn btn-danger btn-sm" @onclick="() => confirmId = a.Id">Delete</button> }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@code {
+    List<Announcement> items = [];
+    Announcement? form;
+    Guid? confirmId;
+    string? error;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    async Task Load()
+    {
+        try { items = await Api.List<Announcement>("announcements", "order=sort_order.asc"); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    static Announcement Copy(Announcement a) => new() { Id = a.Id, Text = a.Text, SortOrder = a.SortOrder, IsActive = a.IsActive };
+
+    async Task Save()
+    {
+        error = null;
+        try
+        {
+            if (form!.Id is { } id) await Api.Update("announcements", id, form);
+            else await Api.Insert("announcements", form);
+            form = null;
+            await Load();
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task Remove(Announcement a)
+    {
+        error = null; confirmId = null;
+        try { await Api.Delete("announcements", a.Id!.Value); await Load(); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+}

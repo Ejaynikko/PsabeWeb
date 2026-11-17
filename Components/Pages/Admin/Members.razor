@@ -1,0 +1,212 @@
+@page "/admin/members"
+@attribute [Authorize(Roles = "admin")]
+@inject SupabaseApi Api
+@inject SupabaseAdminApi AdminApi
+
+<PageTitle>Members - Admin - PSABE</PageTitle>
+
+<section class="wrap section">
+    <h1 class="section-title">Admin</h1>
+    <AdminTabs />
+    @if (error != null) { <div class="alert alert-error">@error</div> }
+    @if (notice != null) { <div class="alert alert-ok">@notice</div> }
+
+    @if (creating is null && editing is null)
+    {
+        <button class="btn btn-gold" @onclick="() => creating = new NewMember()">+ New member</button>
+    }
+
+    @if (creating is not null)
+    {
+        <EditForm Model="creating" OnValidSubmit="Create" class="panel">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <h3>New member</h3>
+            <div class="form-grid">
+                <label class="field">Full name <InputText @bind-Value="creating.FullName" /></label>
+                <label class="field">Email <InputText type="email" @bind-Value="creating.Email" /></label>
+                <label class="field">Temporary password (min 8) <InputText @bind-Value="creating.Password" /></label>
+                <label class="field">Region
+                    <InputSelect @bind-Value="creating.Region">
+                        <option value="">-- none --</option>
+                        @foreach (var r in Regions.All) { <option value="@r">@r</option> }
+                    </InputSelect>
+                </label>
+                <label class="field">Chapter <InputText @bind-Value="creating.Chapter" /></label>
+                <label class="field">Role
+                    <InputSelect @bind-Value="creating.Role"><option value="member">member</option><option value="admin">admin</option></InputSelect>
+                </label>
+                <label class="field">Status
+                    <InputSelect @bind-Value="creating.Status"><option value="active">active</option><option value="pending">pending</option><option value="inactive">inactive</option></InputSelect>
+                </label>
+            </div>
+            <p class="muted">The email is marked confirmed. Give the member the temporary password so they can log in.</p>
+            <button class="btn btn-gold" type="submit">Create member</button>
+            <button class="btn btn-outline" type="button" @onclick="() => creating = null">Cancel</button>
+        </EditForm>
+    }
+
+    @if (editing is not null)
+    {
+        <EditForm Model="editing" OnValidSubmit="Save" class="panel">
+            <DataAnnotationsValidator />
+            <h3>Edit member</h3>
+            <div class="form-grid">
+                <label class="field">Full name <InputText @bind-Value="editing.FullName" /></label>
+                <label class="field">Email <input value="@editing.Email" disabled /></label>
+                <label class="field">Region
+                    <InputSelect @bind-Value="editing.Region">
+                        <option value="">-- none --</option>
+                        @foreach (var r in Regions.All) { <option value="@r">@r</option> }
+                    </InputSelect>
+                </label>
+                <label class="field">Chapter <InputText @bind-Value="editing.Chapter" /></label>
+                <label class="field">PRC license no. <InputText @bind-Value="editing.PrcLicenseNo" /></label>
+                <label class="field">Phone <InputText @bind-Value="editing.Phone" /></label>
+                <label class="field">Membership type <InputText @bind-Value="editing.MembershipType" /></label>
+                <label class="field">Role
+                    <InputSelect @bind-Value="editing.Role"><option value="member">member</option><option value="admin">admin</option></InputSelect>
+                </label>
+                <label class="field">Status
+                    <InputSelect @bind-Value="editing.Status"><option value="pending">pending</option><option value="active">active</option><option value="inactive">inactive</option></InputSelect>
+                </label>
+            </div>
+            <button class="btn btn-gold" type="submit">Save</button>
+            <button class="btn btn-outline" type="button" @onclick="() => editing = null">Cancel</button>
+        </EditForm>
+    }
+
+    <input class="panel" style="width:100%" placeholder="Search name, email or region..." @bind="search" @bind:event="oninput" />
+
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Name</th><th>Email</th><th>Region</th><th>Role</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var m in Filtered)
+            {
+                <tr>
+                    <td>@m.FullName</td>
+                    <td>@m.Email</td>
+                    <td>@m.Region</td>
+                    <td>@m.Role</td>
+                    <td><span class="badge @m.Status">@m.Status</span></td>
+                    <td class="row-actions">
+                        @if (m.Status == "pending") { <button class="btn btn-gold btn-sm" @onclick='() => SetStatus(m, "active")'>Approve</button> }
+                        <button class="btn btn-outline btn-sm" @onclick="() => Edit(m)">Edit</button>
+                        @if (m.Status != "inactive") { <button class="btn btn-outline btn-sm" @onclick='() => SetStatus(m, "inactive")'>Deactivate</button> }
+                        @if (m.Id != me)
+                        {
+                            @if (confirmId == m.Id) { <button class="btn btn-danger btn-sm" @onclick="() => Remove(m)">Confirm: delete permanently</button> }
+                            else { <button class="btn btn-danger btn-sm" @onclick="() => confirmId = m.Id">Delete</button> }
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    @if (members is not null && !Filtered.Any()) { <p class="muted">No members found.</p> }
+</section>
+
+@code {
+    List<Profile>? members;
+    Profile? editing;
+    NewMember? creating;
+    Guid? me, confirmId;
+    string search = "";
+    string? error, notice;
+
+    IEnumerable<Profile> Filtered => (members ?? []).Where(m =>
+        search.Length == 0
+        || m.FullName.Contains(search, StringComparison.OrdinalIgnoreCase)
+        || (m.Email?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false)
+        || (m.Region?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
+
+    protected override async Task OnInitializedAsync()
+    {
+        me = await Api.CurrentUserId();
+        await Load();
+    }
+
+    async Task Load()
+    {
+        try { members = await Api.List<Profile>("profiles", "order=created_at.desc"); }
+        catch (ApiException ex) { error = ex.Message; members ??= []; }
+    }
+
+    void Edit(Profile m)
+    {
+        creating = null;
+        editing = new Profile
+        {
+            Id = m.Id, FullName = m.FullName, Email = m.Email, Region = m.Region, Chapter = m.Chapter,
+            MembershipType = m.MembershipType, Role = m.Role, Status = m.Status, PrcLicenseNo = m.PrcLicenseNo, Phone = m.Phone,
+        };
+    }
+
+    async Task Create()
+    {
+        error = notice = null;
+        try
+        {
+            var id = await AdminApi.CreateUser(creating!.Email, creating.Password, creating.FullName);
+            // the sign-up trigger already made the profile row; fill in the rest
+            await Api.Update("profiles", id, new
+            {
+                full_name = creating.FullName, region = creating.Region, chapter = creating.Chapter ?? "",
+                role = creating.Role, status = creating.Status,
+            });
+            notice = $"Member {creating.Email} created.";
+            creating = null;
+            await Load();
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task Save()
+    {
+        error = notice = null;
+        try
+        {
+            await Api.Update("profiles", editing!.Id!.Value, new
+            {
+                full_name = editing.FullName, region = editing.Region, chapter = editing.Chapter ?? "",
+                prc_license_no = editing.PrcLicenseNo ?? "", phone = editing.Phone ?? "",
+                membership_type = editing.MembershipType, role = editing.Role, status = editing.Status,
+            });
+            editing = null;
+            await Load();
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task SetStatus(Profile m, string status)
+    {
+        error = notice = null;
+        try { await Api.Update("profiles", m.Id!.Value, new { status }); await Load(); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task Remove(Profile m)
+    {
+        error = notice = null; confirmId = null;
+        try
+        {
+            await AdminApi.DeleteUser(m.Id!.Value);
+            notice = $"{m.FullName} was deleted.";
+            await Load();
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    public class NewMember
+    {
+        [Required] public string FullName { get; set; } = "";
+        [Required, EmailAddress] public string Email { get; set; } = "";
+        [Required, MinLength(8)] public string Password { get; set; } = "";
+        public string? Region { get; set; }
+        public string? Chapter { get; set; }
+        public string Role { get; set; } = "member";
+        public string Status { get; set; } = "active";
+    }
+}

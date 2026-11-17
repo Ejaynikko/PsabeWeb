@@ -1,0 +1,100 @@
+@page "/admin/events"
+@attribute [Authorize(Roles = "admin")]
+@inject SupabaseApi Api
+
+<PageTitle>Events - Admin - PSABE</PageTitle>
+
+<section class="wrap section">
+    <h1 class="section-title">Admin</h1>
+    <AdminTabs />
+    @if (error != null) { <div class="alert alert-error">@error</div> }
+
+    @if (form is null)
+    {
+        <button class="btn btn-gold" @onclick="() => form = new EventItem()">+ New event</button>
+    }
+    else
+    {
+        <EditForm Model="form" OnValidSubmit="Save" class="panel">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <h3>@(form.Id is null ? "New event" : "Edit event")</h3>
+            <div class="form-grid">
+                <label class="field">Title <InputText @bind-Value="form.Title" /></label>
+                <label class="field">Location <InputText @bind-Value="form.Location" /></label>
+                <label class="field">Starts <InputDate TValue="DateTimeOffset" @bind-Value="form.StartsAt" /></label>
+                <label class="field">Ends <InputDate TValue="DateTimeOffset?" @bind-Value="form.EndsAt" /></label>
+                <label class="field">Registration URL <InputText @bind-Value="form.RegistrationUrl" /></label>
+                <label class="field">Program PDF URL <InputText @bind-Value="form.ProgramUrl" /></label>
+                <div class="field">Image <ImageUpload @bind-Value="form.ImageUrl" Folder="site/events" /></div>
+            </div>
+            <label class="field">Summary <InputTextArea rows="3" @bind-Value="form.Summary" /></label>
+            <label class="field"><InputCheckbox @bind-Value="form.IsPublished" /> Published (visible to the public)</label>
+            <button class="btn btn-gold" type="submit">Save</button>
+            <button class="btn btn-outline" type="button" @onclick="() => form = null">Cancel</button>
+        </EditForm>
+    }
+
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Title</th><th>Dates</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var e in items)
+            {
+                <tr>
+                    <td>@e.Title</td>
+                    <td>@e.StartsAt.ToString("MMM d, yyyy")@(e.EndsAt is { } end ? " - " + end.ToString("MMM d, yyyy") : "")</td>
+                    <td><span class="badge @(e.IsPublished ? "active" : "pending")">@(e.IsPublished ? "published" : "draft")</span></td>
+                    <td class="row-actions">
+                        <a class="btn btn-outline btn-sm" href="/admin/registrations?event=@e.Id">Registrants</a>
+                        <button class="btn btn-outline btn-sm" @onclick="() => form = Copy(e)">Edit</button>
+                        @if (confirmId == e.Id) { <button class="btn btn-danger btn-sm" @onclick="() => Remove(e)">Confirm: also deletes its registrations</button> }
+                        else { <button class="btn btn-danger btn-sm" @onclick="() => confirmId = e.Id">Delete</button> }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@code {
+    List<EventItem> items = [];
+    EventItem? form;
+    Guid? confirmId;
+    string? error;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    async Task Load()
+    {
+        try { items = await Api.List<EventItem>("events", "order=starts_at.desc"); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    static EventItem Copy(EventItem e) => new()
+    {
+        Id = e.Id, Title = e.Title, Summary = e.Summary, Location = e.Location, StartsAt = e.StartsAt, EndsAt = e.EndsAt,
+        RegistrationUrl = e.RegistrationUrl, ProgramUrl = e.ProgramUrl, ImageUrl = e.ImageUrl, IsPublished = e.IsPublished,
+    };
+
+    async Task Save()
+    {
+        error = null;
+        try
+        {
+            if (form!.Id is { } id) await Api.Update("events", id, form);
+            else await Api.Insert("events", form);
+            form = null;
+            await Load();
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task Remove(EventItem e)
+    {
+        error = null; confirmId = null;
+        try { await Api.Delete("events", e.Id!.Value); await Load(); }
+        catch (ApiException ex) { error = ex.Message; } // note: the DB cascades, so registrations for this event are deleted too
+    }
+}

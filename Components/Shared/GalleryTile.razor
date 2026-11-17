@@ -1,0 +1,11 @@
+<a class="gallery-item d-block" href="@Urls.Safe(Item.ImageUrl)" target="_blank" rel="noopener">
+    <img src="@Item.ImageUrl" alt="@Item.Title" />
+    <div class="gallery-overlay">
+        <span>@Item.Title</span>
+        <i class="bi bi-plus-circle"></i>
+    </div>
+</a>
+
+@code {
+    [Parameter, EditorRequired] public GalleryItem Item { get; set; } = default!;
+}

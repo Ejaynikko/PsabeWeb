@@ -1,0 +1,33 @@
+@page "/news"
+@inject SupabaseApi Api
+
+<PageTitle>News - PSABE</PageTitle>
+
+<PageBanner Tag="LATEST UPDATES" Title="News and Announcements"
+            Subtitle="News from various PSABE activities." />
+
+<section class="section-padding">
+    <div class="container">
+        @if (items is null) { <p class="text-muted">Loading...</p> }
+        else if (items.Count == 0) { <p class="text-muted">No news yet.</p> }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var n in items)
+                {
+                    <div class="col-md-6 col-lg-4"><NewsCard Item="n" Full="true" /></div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    List<NewsItem>? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { items = await Api.List<NewsItem>("news", "is_published=eq.true&order=published_at.desc"); }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException) { items = []; }
+    }
+}

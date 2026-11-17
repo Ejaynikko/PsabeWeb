@@ -1,0 +1,4 @@
+@inject IConfiguration Config
+
+@* hCaptcha adds a hidden "h-captcha-response" field to the surrounding form; pages read it from the posted form. *@
+<div class="h-captcha" data-sitekey="@Config["HCaptcha:SiteKey"]" style="margin-bottom:14px"></div>

@@ -1,0 +1,33 @@
+@page "/gallery"
+@inject SupabaseApi Api
+
+<PageTitle>Gallery - PSABE</PageTitle>
+
+<PageBanner Tag="MOMENTS AND MEMORIES" Title="Photo Gallery"
+            Subtitle="Explore activities, events, and memorable moments from the PSABE community." />
+
+<section class="gallery-section section-padding">
+    <div class="container">
+        @if (items is null) { <p class="text-white-50">Loading...</p> }
+        else if (items.Count == 0) { <p class="text-white-50">Photos will be added soon.</p> }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var g in items)
+                {
+                    <div class="col-6 col-lg-3"><GalleryTile Item="g" /></div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    List<GalleryItem>? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { items = await Api.List<GalleryItem>("gallery_items", "is_published=eq.true&order=sort_order.asc,created_at.desc"); }
+        catch (Exception ex) when (ex is ApiException or HttpRequestException) { items = []; }
+    }
+}

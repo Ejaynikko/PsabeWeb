@@ -1,0 +1,91 @@
+@page "/admin/gallery"
+@attribute [Authorize(Roles = "admin")]
+@inject SupabaseApi Api
+
+<PageTitle>Gallery - Admin - PSABE</PageTitle>
+
+<section class="wrap section">
+    <h1 class="section-title">Admin</h1>
+    <AdminTabs />
+    @if (error != null) { <div class="alert alert-error">@error</div> }
+
+    @if (form is null)
+    {
+        <button class="btn btn-gold" @onclick="() => form = new GalleryItem()">+ New photo</button>
+    }
+    else
+    {
+        <EditForm Model="form" OnValidSubmit="Save" class="panel">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <h3>@(form.Id is null ? "New photo" : "Edit photo")</h3>
+            <label class="field">Title <InputText @bind-Value="form.Title" /></label>
+            <div class="field">Image <ImageUpload @bind-Value="form.ImageUrl" Folder="site/gallery" /></div>
+            <label class="field">Sort order <InputNumber @bind-Value="form.SortOrder" /></label>
+            <label class="field"><InputCheckbox @bind-Value="form.IsPublished" /> Published</label>
+            <button class="btn btn-gold" type="submit">Save</button>
+            <button class="btn btn-outline" type="button" @onclick="() => form = null">Cancel</button>
+        </EditForm>
+    }
+
+    <div class="table-wrap">
+        <table class="data">
+            <thead><tr><th>Title</th><th>Order</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var g in items)
+            {
+                <tr>
+                    <td>@g.Title</td>
+                    <td>@g.SortOrder</td>
+                    <td><span class="badge @(g.IsPublished ? "active" : "pending")">@(g.IsPublished ? "published" : "hidden")</span></td>
+                    <td class="row-actions">
+                        <button class="btn btn-outline btn-sm" @onclick="() => form = Copy(g)">Edit</button>
+                        @if (confirmId == g.Id) { <button class="btn btn-danger btn-sm" @onclick="() => Remove(g)">Confirm delete</button> }
+                        else { <button class="btn btn-danger btn-sm" @onclick="() => confirmId = g.Id">Delete</button> }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@code {
+    List<GalleryItem> items = [];
+    GalleryItem? form;
+    Guid? confirmId;
+    string? error;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    async Task Load()
+    {
+        try { items = await Api.List<GalleryItem>("gallery_items", "order=sort_order.asc,created_at.desc"); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    static GalleryItem Copy(GalleryItem g) => new()
+    {
+        Id = g.Id, Title = g.Title, ImageUrl = g.ImageUrl, SortOrder = g.SortOrder, IsPublished = g.IsPublished,
+    };
+
+    async Task Save()
+    {
+        error = null;
+        try
+        {
+            if (form!.Id is { } id) await Api.Update("gallery_items", id, form);
+            else await Api.Insert("gallery_items", form);
+            form = null;
+            await Load();
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task Remove(GalleryItem g)
+    {
+        error = null; confirmId = null;
+        try { await Api.Delete("gallery_items", g.Id!.Value); await Load(); }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+}

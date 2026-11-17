@@ -1,0 +1,83 @@
+@page "/account"
+@attribute [Authorize]
+@inject SupabaseApi Api
+
+<PageTitle>My Profile - PSABE</PageTitle>
+
+<section class="wrap section">
+    <h1 class="section-title">My Profile</h1>
+    @if (profile is null) { <p class="muted">@(error ?? "Loading...")</p> }
+    else
+    {
+        <p>Membership status: <span class="badge @profile.Status">@profile.Status</span>
+            @if (profile.Status == "pending") { <span class="muted"> - waiting for admin approval</span> }
+        </p>
+        @if (error != null) { <div class="alert alert-error">@error</div> }
+        @if (saved) { <div class="alert alert-ok">Profile saved.</div> }
+
+        <div class="panel avatar-panel">
+            <AvatarUpload Value="@profile.AvatarUrl" ValueChanged="SaveAvatar" Folder="@($"avatars/{profile.Id}")" />
+        </div>
+
+        <EditForm Model="profile" OnValidSubmit="Save" class="panel">
+            <DataAnnotationsValidator />
+            <div class="form-grid">
+                <label class="field">Full name <InputText @bind-Value="profile.FullName" /></label>
+                <label class="field">Email <input value="@profile.Email" disabled /></label>
+                <label class="field">Region
+                    <InputSelect @bind-Value="profile.Region">
+                        <option value="">-- select --</option>
+                        @foreach (var r in Regions.All) { <option value="@r">@r</option> }
+                    </InputSelect>
+                </label>
+                <label class="field">Chapter <InputText @bind-Value="profile.Chapter" /></label>
+                <label class="field">PRC license no. <InputText @bind-Value="profile.PrcLicenseNo" /></label>
+                <label class="field">Phone <InputText @bind-Value="profile.Phone" /></label>
+            </div>
+            <button class="btn btn-gold" type="submit">Save profile</button>
+        </EditForm>
+    }
+</section>
+
+@code {
+    Profile? profile;
+    string? error;
+    bool saved;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var uid = await Api.CurrentUserId();
+            profile = (await Api.List<Profile>("profiles", $"id=eq.{uid}")).FirstOrDefault();
+            if (profile is null) error = "Profile not found.";
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task SaveAvatar(string? url)
+    {
+        error = null;
+        try { await Api.Update("profiles", profile!.Id!.Value, new { avatar_url = url }); profile.AvatarUrl = url; }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+
+    async Task Save()
+    {
+        saved = false; error = null;
+        try
+        {
+            // role/status are deliberately not sent: members can't change them (DB trigger enforces it too)
+            await Api.Update("profiles", profile!.Id!.Value, new
+            {
+                full_name = profile.FullName,
+                region = profile.Region,
+                chapter = profile.Chapter ?? "",
+                prc_license_no = profile.PrcLicenseNo ?? "",
+                phone = profile.Phone ?? "",
+            });
+            saved = true;
+        }
+        catch (ApiException ex) { error = ex.Message; }
+    }
+}

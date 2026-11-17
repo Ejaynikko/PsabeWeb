@@ -1,0 +1,46 @@
+@page "/contact"
+@inject IConfiguration Config
+
+<PageTitle>Contact - PSABE</PageTitle>
+
+<PageBanner Tag="GET IN TOUCH" Title="Contact Us"
+            Subtitle="Reach the Philippine Society of Agricultural and Biosystems Engineers." />
+
+<section class="section-padding">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="contact-card">
+                    <i class="bi bi-geo-alt"></i>
+                    <h5>Office Address</h5>
+                    <p>@Address</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="contact-card">
+                    <i class="bi bi-envelope"></i>
+                    <h5>Email</h5>
+                    @if (Email.Contains('@')) { <p><a href="mailto:@Email">@Email</a></p> }
+                    else { <p>@Email</p> }
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="contact-card">
+                    <i class="bi bi-telephone"></i>
+                    <h5>Phone</h5>
+                    <p>@Phone</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    string Address => Site("Address", "Official PSABE Office Address");
+    string Email => Site("Email", "Official PSABE Email");
+    string Phone => Site("Phone", "Official Contact Number");
+
+    // Contact details live in appsettings.json ("Site" section).
+    string Site(string key, string fallback) =>
+        string.IsNullOrWhiteSpace(Config["Site:" + key]) ? fallback : Config["Site:" + key]!;
+}
